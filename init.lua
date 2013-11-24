@@ -85,7 +85,6 @@ for _, row in ipairs(lights) do
 		drawtype = drawtype,
 		node_box = nodebox,
 		selection_box = nodebox,
-        -- Other stuff here.
         on_punch = function(pos, node, puncher)
             minetest.set_node(pos, {name=on, param2=node.param2})
         end,
