@@ -2,59 +2,11 @@
 --updated 12/11/2013
 --Mod adding simple on/off lights by qwrwed.
 
---Code from Stairs+ to determine facedir of lights
-local dirs1 = { 21, 20, 23, 22, 21 }
-local dirs2 = { 15, 8, 17, 6, 15 }
-local dirs3 = { 14, 11, 16, 5, 14 }
-
-lightsplus_players_onwall = {}
-
-local function get_nodedef_field(nodename, fieldname)
-        if not minetest.registered_nodes[nodename] then
-                return nil
-        end
-        return minetest.registered_nodes[nodename][fieldname]
+if minetest.get_modpath("unified_inventory") or not minetest.setting_getbool("creative_mode") then
+        lightsplus_expect_infinite_stacks = false
+else
+        lightsplus_expect_infinite_stacks = true
 end
-
-function lightsplus_rotate_and_place(itemstack, placer, pointed_thing, onwall)
-    local node = minetest.get_node(pointed_thing.under)
-        if not minetest.registered_nodes[node.name] or not minetest.registered_nodes[node.name].on_rightclick then
-            local above = pointed_thing.above
-            local under = pointed_thing.under
-            local top = {x=under.x, y=under.y+1, z=under.z}
-            local pitch = placer:get_look_pitch()
-            local node = minetest.get_node(above)
-            local fdir = minetest.dir_to_facedir(placer:get_look_dir())
-            local wield_name = itemstack:get_name()
-            local slab = string.find(wield_name, "light")
-            local iswall = (above.x ~= under.x) or (above.z ~= under.z)
-            local isceiling = (above.x == under.x) and (above.z == under.z) and (pitch > 0)
-            if get_nodedef_field(minetest.get_node(under).name, "buildable_to") then
-                if slab then fdir = 0 end
-                minetest.add_node(under, {name = wield_name, param2 = fdir }) -- place right side up
-            elseif not get_nodedef_field(minetest.get_node(above).name, "buildable_to") then
-                return
-            elseif onwall or (iswall and (slab or panel)) then
-                if slab then
-                    minetest.add_node(above, {name = wield_name, param2 = dirs2[fdir+2] }) -- place with wall slab rotation
-                else
-                    minetest.add_node(above, {name = wield_name, param2 = dirs3[fdir+2] }) -- place with wall panel/micro rotation
-                end
-            elseif isceiling then
-                local nfdir = dirs1[fdir+2]
-                if slab then nfdir = 22 end
-                minetest.add_node(above, {name = wield_name, param2 = nfdir }) -- place upside down variant
-            else
-                if slab then fdir = 0 end
-                minetest.add_node(above, {name = wield_name, param2 = fdir }) -- place right side up
-            end
-                itemstack:take_item()
-                return itemstack
-    else
-        minetest.registered_nodes[node.name].on_rightclick(pointed_thing.under, node, placer)
-    end
-end
-
 
 --Node Definitions and Functions
 local lights = {
@@ -85,13 +37,10 @@ for _, row in ipairs(lights) do
 		drawtype = drawtype,
 		node_box = nodebox,
 		selection_box = nodebox,
-        on_punch = function(pos, node, puncher)
+		on_punch = function(pos, node, puncher)
             minetest.set_node(pos, {name=on, param2=node.param2})
         end,
-		on_place = function(itemstack, placer, pointed_thing)
-			local keys=placer:get_player_control()
-			lightsplus_rotate_and_place(itemstack, placer, pointed_thing, keys["sneak"])
-		end
+		on_place = minetest.rotate_and_place
     })
     minetest.register_node(on, {
         description = desc.." (Active)",
@@ -107,10 +56,7 @@ for _, row in ipairs(lights) do
         on_punch = function(pos, node, puncher)
             minetest.set_node(pos, {name=off, param2=node.param2})
         end,
-		on_place = function(itemstack, placer, pointed_thing)
-			local keys=placer:get_player_control() 
-			lightsplus_rotate_and_place(itemstack, placer, pointed_thing, keys["sneak"])
-		end
+		on_place = minetest.rotate_and_place
     })
 end
 
