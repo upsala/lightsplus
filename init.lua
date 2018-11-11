@@ -1,6 +1,8 @@
 --LIGHTS+ 
 --updated 12/11/2013
 --Mod adding simple on/off lights by qwrwed.
+--updated 11/11/2018
+--Added colored lights by stefan77.
 
 if minetest.get_modpath("unified_inventory") or not minetest.setting_getbool("creative_mode") then
         lightsplus_expect_infinite_stacks = false
@@ -8,15 +10,47 @@ else
         lightsplus_expect_infinite_stacks = true
 end
 
+local colors = {
+  { "blue", "dye:blue", "Blue" },
+  { "brown", "dye:brown", "Brown" },
+  { "cyan", "dye:cyan", "Cyan" },
+  { "dark_green", "dye:dark_green", "Dark Green" },
+  { "green", "dye:green", "Green" },
+  { "magenta", "dye:magenta", "Magenta" },
+  { "orange", "dye:orange", "Orange" },
+  { "pink", "dye:pink", "Pink" },
+  { "red", "dye:red", "Red" },
+  { "violet", "dye:violet", "Violet" },
+  { "yellow", "dye:yellow", "Yellow" },
+  { "gold", "default:gold_ingot", "Gold" }
+}
+
 --Node Definitions and Functions
 local lights = {
 	{"lightsplus:light", "lightsplus:light_on", "Light", "lightsplus_light.png", "", "", "facedir", ""},
-	{"lightsplus:gold_light", "lightsplus:gold_light_on", "Gold Light", "lightsplus_gold_light.png", "", "facedir", "", ""},
 	{"lightsplus:slab_light", "lightsplus:slab_light_on", "Slab Light", "lightsplus_light.png", "light", "facedir", "nodebox", {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, 0, 0.5},},},
-	{"lightsplus:gold_slab_light", "lightsplus:gold_slab_light_on", "Gold Slab Light", "lightsplus_gold_light.png", "light", "facedir", "nodebox", {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, 0, 0.5},},},
-	{"lightsplus:flat_light", "lightsplus:flat_light_on", "Flat Light", "lightsplus_light.png", "light", "facedir", "nodebox", {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, -7/16, 0.5},},},
-	{"lightsplus:gold_flat_light", "lightsplus:gold_flat_light_on", "Gold Flat Light", "lightsplus_gold_light.png", "light", "facedir", "nodebox", {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, -7/16, 0.5},},},
+	{"lightsplus:flat_light", "lightsplus:flat_light_on", "Flat Light", "lightsplus_light.png", "light", "facedir", "nodebox", {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, -7/16, 0.5},},}
 }
+
+for _, row in ipairs(colors) do
+  local color = row[1]
+  local name = row[3]
+
+  table.insert(
+    lights,
+    {"lightsplus:"..color.."_light", "lightsplus:"..color.."_light_on", name.." Light", "lightsplus_"..color.."_light.png", "", "facedir", "", ""}
+  )
+
+  table.insert(
+      lights,
+      {"lightsplus:"..color.."_slab_light", "lightsplus:"..color.."_slab_light_on", name.." Slab Light", "lightsplus_"..color.."_light.png", "light", "facedir", "nodebox", {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, 0, 0.5},},}
+    )
+
+  table.insert(
+      lights,
+    	{"lightsplus:"..color.."_flat_light", "lightsplus:"..color.."_flat_light_on", name.." Flat Light", "lightsplus_"..color.."_light.png", "light", "facedir", "nodebox", {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, -7/16, 0.5},},}
+    )
+end
 
 
 for _, row in ipairs(lights) do
@@ -72,30 +106,6 @@ minetest.register_craft({
 	}
 })
 
---Gold Light
-minetest.register_craft({
-	type = "shapeless",
-	output = "lightsplus:gold_light",
-	recipe = {'lightsplus:light', 'default:gold_ingot'},
-})
-
---Gold Slab Light
-minetest.register_craft({
-	output = '"lightsplus:gold_slab_light" 6',
-	recipe = {
-		{'lightsplus:gold_light', 'lightsplus:gold_light', 'lightsplus:gold_light'},
-	}
-})
-
---Gold Light from Slabs
-minetest.register_craft({
-	output = '"lightsplus:gold_light"',
-	recipe = {
-		{'lightsplus:gold_slab_light'},
-		{'lightsplus:gold_slab_light'},
-	}
-})
-
 --Slab Light
 minetest.register_craft({
 	output = '"lightsplus:slab_light" 6',
@@ -128,21 +138,62 @@ minetest.register_craft({
 	recipe = {'lightsplus:flat_light', 'lightsplus:flat_light', 'lightsplus:flat_light', 'lightsplus:flat_light', 'lightsplus:flat_light', 'lightsplus:flat_light', 'lightsplus:flat_light', 'lightsplus:flat_light'},
 })
 
---Gold Flat Light
-minetest.register_craft({
-	output = '"lightsplus:gold_flat_light" 16',
-	recipe = {
-		{'lightsplus:gold_light'},
-	}
-})
 
---Gold Slab from Gold Flat Lights
-minetest.register_craft({
-	type = "shapeless",
-	output = "lightsplus:gold_slab_light",
-	recipe = {'lightsplus:gold_flat_light', 'lightsplus:gold_flat_light', 'lightsplus:gold_flat_light', 'lightsplus:gold_flat_light', 'lightsplus:gold_flat_light', 'lightsplus:gold_flat_light', 'lightsplus:gold_flat_light', 'lightsplus:gold_flat_light'},
-})
 
+
+
+for _, row in ipairs(colors) do
+  local color = row[1]
+  local item = row[2]
+  local name = row[3]
+
+  --Colored Light
+  minetest.register_craft({
+    type = "shapeless",
+    output = "lightsplus:"..color.."_light",
+    recipe = {'lightsplus:light', item},
+  })
+
+  --Colored Slab Light
+  minetest.register_craft({
+    output = '"lightsplus:'..color..'_slab_light" 6',
+    recipe = {
+      {'lightsplus:'..color..'_light', 'lightsplus:'..color..'_light', 'lightsplus:'..color..'_light'},
+    }
+  })
+
+  --Colored Light from Slabs
+  minetest.register_craft({
+    output = '"lightsplus:'..color..'_light"',
+    recipe = {
+      {'lightsplus:'..color..'_slab_light'},
+      {'lightsplus:'..color..'_slab_light'},
+    }
+  })
+
+  --Colored Flat Light
+  minetest.register_craft({
+    output = '"lightsplus:'..color..'_flat_light" 16',
+    recipe = {
+      {'lightsplus:'..color..'_light'},
+    }
+  })
+
+  --Colored Slab from Colored Flat Lights
+  minetest.register_craft({
+    type = "shapeless",
+    output = "lightsplus:"..color.."_slab_light",
+    recipe = {'lightsplus:'..color..'_flat_light', 'lightsplus:'..color..'_flat_light', 'lightsplus:'..color..'_flat_light', 'lightsplus:'..color..'_flat_light', 'lightsplus:'..color..'_flat_light', 'lightsplus:'..color..'_flat_light', 'lightsplus:'..color..'_flat_light', 'lightsplus:'..color..'_flat_light'},
+  })
+
+end
+
+
+
+
+
+
+--[[
 minetest.register_alias("newlights:light", "lightsplus:light")
 minetest.register_alias("newlights:light_on", "lightsplus:light_on")
 minetest.register_alias("newlights:slab_light", "lightsplus:flat_light")
@@ -164,7 +215,7 @@ minetest.register_alias("lightsplus:light_flat", "lightsplus:flat_light")
 minetest.register_alias("lightsplus:light_flat_on", "lightsplus:flat_light_on")
 minetest.register_alias("lightsplus:light_flat_gold", "lightsplus:gold_flat_light")
 minetest.register_alias("lightsplus:light_flat_on_gold", "lightsplus:gold_flat_light_on")
-
+]]--
 
 
 
